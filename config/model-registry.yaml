@@ -1,0 +1,232 @@
+# AI Works Model Registry
+# Defines available models, their capabilities, routing rules, and endpoints.
+# Used by ai-works:capability-routing and lib/orchestrator/ to select models.
+
+version: "1.0.0"
+updated: "2026-07-15"
+
+# ── Capability Tiers ──────────────────────────────────────────────────────────
+# light        Fast local models for simple formatting, renaming, config edits
+# mid          Standard code generation, basic debugging, routine tasks
+# high         Complex reasoning, architecture decisions, large refactors
+# cloud-required  Novel algorithms, nuanced requirements, maximum quality
+
+# ── Privacy Classes ───────────────────────────────────────────────────────────
+# public       Data safe to send to cloud APIs
+# internal     Internal business data — prefer local; cloud only with approval
+# confidential Stay on local models only; never send to cloud
+
+# ── Models ───────────────────────────────────────────────────────────────────
+
+models:
+
+  # ─ Local Models (Ollama) ──────────────────────────────────────────────────
+
+  - id: hermes3
+    name: "Hermes 3 (Nous Research)"
+    provider: local
+    server: ollama
+    endpoint: "http://localhost:11434/v1"
+    model_name: "hermes3"
+    capability_tier: high
+    context_window: 131072
+    cost_per_1k_tokens: 0.00
+    latency: medium
+    strengths:
+      - instruction_following
+      - code_generation
+      - reasoning
+      - tool_use
+    privacy_class: confidential   # local-only; safe for all data
+    enabled: true
+
+  - id: llama3.1-8b
+    name: "Llama 3.1 8B Instruct"
+    provider: local
+    server: ollama
+    endpoint: "http://localhost:11434/v1"
+    model_name: "llama3.1:8b"
+    capability_tier: mid
+    context_window: 131072
+    cost_per_1k_tokens: 0.00
+    latency: fast
+    strengths:
+      - code_generation
+      - text_processing
+      - summarization
+    privacy_class: confidential
+    enabled: true
+
+  - id: codellama-7b
+    name: "Code Llama 7B"
+    provider: local
+    server: ollama
+    endpoint: "http://localhost:11434/v1"
+    model_name: "codellama:7b"
+    capability_tier: mid
+    context_window: 16384
+    cost_per_1k_tokens: 0.00
+    latency: fast
+    strengths:
+      - code_completion
+      - code_generation
+    privacy_class: confidential
+    enabled: true
+
+  - id: phi3.5
+    name: "Phi-3.5 Mini"
+    provider: local
+    server: ollama
+    endpoint: "http://localhost:11434/v1"
+    model_name: "phi3.5"
+    capability_tier: mid
+    context_window: 128000
+    cost_per_1k_tokens: 0.00
+    latency: very_fast
+    strengths:
+      - text_processing
+      - simple_code
+      - formatting
+    privacy_class: confidential
+    enabled: true
+
+  - id: tinyllama
+    name: "TinyLlama 1.1B"
+    provider: local
+    server: ollama
+    endpoint: "http://localhost:11434/v1"
+    model_name: "tinyllama"
+    capability_tier: light
+    context_window: 2048
+    cost_per_1k_tokens: 0.00
+    latency: very_fast
+    strengths:
+      - text_formatting
+      - renaming
+      - simple_edits
+    privacy_class: confidential
+    enabled: true
+
+  # ─ Cloud Models (Anthropic) ───────────────────────────────────────────────
+
+  - id: claude-sonnet-4-5
+    name: "Claude Sonnet 4.5"
+    provider: cloud
+    server: anthropic
+    endpoint: "https://api.anthropic.com/v1"
+    model_name: "claude-sonnet-4-5"
+    capability_tier: high
+    context_window: 200000
+    cost_per_1k_tokens: 0.003
+    latency: medium
+    strengths:
+      - code_generation
+      - reasoning
+      - analysis
+      - writing
+    privacy_class: internal    # requires approval for confidential data
+    requires_env: ANTHROPIC_API_KEY
+    enabled: true
+
+  - id: claude-opus-4-5
+    name: "Claude Opus 4.5"
+    provider: cloud
+    server: anthropic
+    endpoint: "https://api.anthropic.com/v1"
+    model_name: "claude-opus-4-5"
+    capability_tier: cloud-required
+    context_window: 200000
+    cost_per_1k_tokens: 0.015
+    latency: slow
+    strengths:
+      - complex_reasoning
+      - architecture_design
+      - novel_problems
+      - maximum_quality
+    privacy_class: internal
+    requires_env: ANTHROPIC_API_KEY
+    enabled: true
+
+  # ─ Cloud Models (OpenAI) ─────────────────────────────────────────────────
+
+  - id: gpt-4o-mini
+    name: "GPT-4o mini"
+    provider: cloud
+    server: openai
+    endpoint: "https://api.openai.com/v1"
+    model_name: "gpt-4o-mini"
+    capability_tier: mid
+    context_window: 128000
+    cost_per_1k_tokens: 0.00015
+    latency: fast
+    strengths:
+      - text_processing
+      - code_generation
+      - summarization
+    privacy_class: internal
+    requires_env: OPENAI_API_KEY
+    enabled: false    # set to true to enable
+
+  - id: gpt-4o
+    name: "GPT-4o"
+    provider: cloud
+    server: openai
+    endpoint: "https://api.openai.com/v1"
+    model_name: "gpt-4o"
+    capability_tier: cloud-required
+    context_window: 128000
+    cost_per_1k_tokens: 0.005
+    latency: medium
+    strengths:
+      - complex_reasoning
+      - code_generation
+      - analysis
+    privacy_class: internal
+    requires_env: OPENAI_API_KEY
+    enabled: false
+
+# ── Routing Rules ────────────────────────────────────────────────────────────
+# Applied in order; first matching rule wins.
+
+routing_rules:
+
+  - name: "confidential-data-stays-local"
+    condition: "privacy_class == confidential"
+    require: "provider == local"
+    rationale: "Confidential data must never leave the local network"
+
+  - name: "light-tasks-use-lightest-model"
+    condition: "capability_tier == light"
+    prefer:
+      - tinyllama
+      - phi3.5
+    rationale: "Save compute for tasks that need it"
+
+  - name: "standard-coding-local-first"
+    condition: "capability_tier == mid AND task_type contains code"
+    prefer:
+      - hermes3
+      - codellama-7b
+      - llama3.1-8b
+    fallback: claude-sonnet-4-5
+    rationale: "Local models handle most code generation; cloud is fallback"
+
+  - name: "high-reasoning-hermes-first"
+    condition: "capability_tier == high"
+    prefer:
+      - hermes3
+      - claude-sonnet-4-5
+    fallback: claude-opus-4-5
+    rationale: "Hermes handles most high-tier tasks locally"
+
+  - name: "cloud-required-uses-opus"
+    condition: "capability_tier == cloud-required"
+    prefer:
+      - claude-opus-4-5
+      - gpt-4o
+    rationale: "Maximum quality tasks use frontier models"
+
+# ── Default Model ─────────────────────────────────────────────────────────────
+# Used when no routing rule matches or capability tier is unspecified.
+
+default_model: hermes3
