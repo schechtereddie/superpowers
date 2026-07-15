@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# SessionStart hook for superpowers plugin
+# SessionStart hook for AI Works (superpowers fork)
+# Injects: using-superpowers bootstrap + AI Works identity + in-progress workflow state
 
 set -euo pipefail
 
@@ -9,6 +10,25 @@ PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 # Read using-superpowers content
 using_superpowers_content=$(cat "${PLUGIN_ROOT}/skills/using-superpowers/SKILL.md" 2>&1 || echo "Error reading using-superpowers skill")
+
+# Read AI Works bootstrap content
+ai_works_bootstrap_content=$(cat "${PLUGIN_ROOT}/skills/ai-works-bootstrap/SKILL.md" 2>/dev/null || echo "")
+
+# Detect any in-progress workflow state files (docs/ai-works/workflow-state/*.json)
+workflow_state_notice=""
+WORKFLOW_STATE_DIR="${PLUGIN_ROOT}/docs/ai-works/workflow-state"
+if [ -d "${WORKFLOW_STATE_DIR}" ]; then
+    state_files=$(find "${WORKFLOW_STATE_DIR}" -name "*.json" -newer "${PLUGIN_ROOT}/package.json" 2>/dev/null | head -5 || true)
+    if [ -n "${state_files}" ]; then
+        workflow_names=""
+        while IFS= read -r f; do
+            basename_no_ext="${f##*/}"
+            basename_no_ext="${basename_no_ext%-state.json}"
+            workflow_names="${workflow_names}  - ${basename_no_ext}\n"
+        done <<< "${state_files}"
+        workflow_state_notice="\\n<WORKFLOW-RESUME>\\nThe following workflows have in-progress state from a previous session:\\n${workflow_names}\\nTo resume, invoke the workflow-engine skill and load the state file from docs/ai-works/workflow-state/.\\n</WORKFLOW-RESUME>"
+    fi
+fi
 
 # Escape string for JSON embedding using bash parameter substitution.
 # Each ${s//old/new} is a single C-level pass - orders of magnitude
@@ -24,7 +44,15 @@ escape_for_json() {
 }
 
 using_superpowers_escaped=$(escape_for_json "$using_superpowers_content")
-session_context="<EXTREMELY_IMPORTANT>\nYou have superpowers.\n\n**Below is the full content of your 'superpowers:using-superpowers' skill - your introduction to using skills. For all other skills, use the 'Skill' tool:**\n\n${using_superpowers_escaped}\n</EXTREMELY_IMPORTANT>"
+ai_works_bootstrap_escaped=""
+if [ -n "${ai_works_bootstrap_content}" ]; then
+    ai_works_bootstrap_escaped=$(escape_for_json "$ai_works_bootstrap_content")
+    ai_works_section="\\n\\n**AI Works System — additional skill namespaces and adaptive workflows:**\\n\\n${ai_works_bootstrap_escaped}"
+else
+    ai_works_section=""
+fi
+
+session_context="<EXTREMELY_IMPORTANT>\nYou have superpowers.\n\n**Below is the full content of your 'superpowers:using-superpowers' skill - your introduction to using skills. For all other skills, use the 'Skill' tool:**\n\n${using_superpowers_escaped}${ai_works_section}${workflow_state_notice}\n</EXTREMELY_IMPORTANT>"
 
 # Output context injection as JSON.
 # Cursor hooks expect additional_context (snake_case).

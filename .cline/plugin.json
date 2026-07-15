@@ -1,0 +1,13 @@
+{
+  "name": "ai-works",
+  "description": "AI Works business skill and plugin system — injects skills into Cline sessions at startup",
+  "version": "1.0.0",
+  "type": "system-prompt-injection",
+  "bootstrap": {
+    "skills_root": "../skills",
+    "bootstrap_skill": "using-superpowers/SKILL.md",
+    "ai_works_skill": "ai-works-bootstrap/SKILL.md",
+    "inject_on": "session_start"
+  },
+  "tool_mapping": "see skills/using-superpowers/references/cline-tools.md"
+}
