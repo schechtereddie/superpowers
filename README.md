@@ -11,7 +11,7 @@ If this sounds like someone you know, definitely send them our way.
 
 ## Quickstart
 
-Give your agent Superpowers: [Claude Code](#claude-code), [Antigravity](#antigravity), [Codex App](#codex-app), [Codex CLI](#codex-cli), [Cursor](#cursor), [Factory Droid](#factory-droid), [GitHub Copilot CLI](#github-copilot-cli), [Kimi Code](#kimi-code), [OpenCode](#opencode), [Pi](#pi).
+Give your agent Superpowers: [Claude Code](#claude-code), [Antigravity](#antigravity), [Codex App](#codex-app), [Codex CLI](#codex-cli), [Cursor](#cursor), [Factory Droid](#factory-droid), [GitHub Copilot CLI](#github-copilot-cli), [Kimi Code](#kimi-code), [OpenClaw](#openclaw), [OpenCode](#opencode), [Pi](#pi).
 
 ## How it works
 
@@ -155,6 +155,16 @@ Superpowers is available in Kimi Code's plugin marketplace.
   ```
 
 - Detailed docs: [docs/README.kimi.md](docs/README.kimi.md)
+
+### OpenClaw
+
+- Install Superpowers from this repository:
+
+  ```bash
+  openclaw skills install git:obra/superpowers
+  ```
+
+- Detailed docs: [docs/README.openclaw.md](docs/README.openclaw.md)
 
 ### OpenCode
 
