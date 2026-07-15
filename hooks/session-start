@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SessionStart hook for AI Works (superpowers fork)
-# Injects: using-superpowers bootstrap + AI Works identity + in-progress workflow state
+# Injects: using-superpowers bootstrap + AI Works identity + plugin skills + workflow state
 
 set -euo pipefail
 
@@ -13,6 +13,34 @@ using_superpowers_content=$(cat "${PLUGIN_ROOT}/skills/using-superpowers/SKILL.m
 
 # Read AI Works bootstrap content
 ai_works_bootstrap_content=$(cat "${PLUGIN_ROOT}/skills/ai-works-bootstrap/SKILL.md" 2>/dev/null || echo "")
+
+# Load enabled plugin skill overrides from skill-registry.json (if node is available)
+plugin_overrides_content=""
+SKILL_REGISTRY="${PLUGIN_ROOT}/config/skill-registry.json"
+if [ -f "${SKILL_REGISTRY}" ] && command -v node >/dev/null 2>&1; then
+    plugin_overrides_content=$(node -e "
+try {
+  const fs = require('fs');
+  const path = require('path');
+  const registry = JSON.parse(fs.readFileSync('${SKILL_REGISTRY}', 'utf8'));
+  const plugins = (registry.plugins || []).filter(p => p.enabled !== false);
+  const parts = [];
+  for (const plugin of plugins.sort((a,b) => (a.priority||0)-(b.priority||0))) {
+    const manifestPath = path.join('${PLUGIN_ROOT}', plugin.path, 'plugin-manifest.json');
+    if (!fs.existsSync(manifestPath)) continue;
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    for (const skillPath of (manifest.skills || [])) {
+      const skillFile = path.join('${PLUGIN_ROOT}', plugin.path, skillPath, 'SKILL.md');
+      if (fs.existsSync(skillFile)) {
+        const content = fs.readFileSync(skillFile, 'utf8');
+        parts.push('## Plugin Skill: ' + plugin.name + '/' + skillPath + '\n\n' + content);
+      }
+    }
+  }
+  process.stdout.write(parts.join('\n\n---\n\n'));
+} catch(e) { process.stdout.write(''); }
+" 2>/dev/null || echo "")
+fi
 
 # Detect any in-progress workflow state files (docs/ai-works/workflow-state/*.json)
 workflow_state_notice=""
@@ -52,7 +80,13 @@ else
     ai_works_section=""
 fi
 
-session_context="<EXTREMELY_IMPORTANT>\nYou have superpowers.\n\n**Below is the full content of your 'superpowers:using-superpowers' skill - your introduction to using skills. For all other skills, use the 'Skill' tool:**\n\n${using_superpowers_escaped}${ai_works_section}${workflow_state_notice}\n</EXTREMELY_IMPORTANT>"
+plugin_section=""
+if [ -n "${plugin_overrides_content}" ]; then
+    plugin_overrides_escaped=$(escape_for_json "$plugin_overrides_content")
+    plugin_section="\\n\\n**Plugin Skills (loaded from installed plugins):**\\n\\n${plugin_overrides_escaped}"
+fi
+
+session_context="<EXTREMELY_IMPORTANT>\nYou have superpowers.\n\n**Below is the full content of your 'superpowers:using-superpowers' skill - your introduction to using skills. For all other skills, use the 'Skill' tool:**\n\n${using_superpowers_escaped}${ai_works_section}${plugin_section}${workflow_state_notice}\n</EXTREMELY_IMPORTANT>"
 
 # Output context injection as JSON.
 # Cursor hooks expect additional_context (snake_case).

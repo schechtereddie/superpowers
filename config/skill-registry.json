@@ -1,0 +1,26 @@
+{
+  "_comment": "AI Works skill registry — tracks installed plugins and active skill versions",
+  "version": "1.0.0",
+  "updated": "2026-07-15",
+
+  "plugins": [],
+
+  "skill_overrides": {
+    "_comment": "Map of base skill name → plugin name that overrides it. Set by the install process.",
+    "examples": {
+      "brainstorming": "my-plugin"
+    }
+  },
+
+  "ab_tests": {
+    "_comment": "Skill A/B test configuration — agent randomly or deterministically receives variant A or B",
+    "_schema": {
+      "skill_name": "base skill being tested",
+      "variant_a": "path to variant A SKILL.md (usually the original)",
+      "variant_b": "path to variant B SKILL.md (the candidate)",
+      "traffic_split": "fraction sent to variant B (0.0 to 1.0)",
+      "enabled": "boolean"
+    },
+    "active": []
+  }
+}

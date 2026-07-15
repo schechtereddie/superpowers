@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AI Works Plugin Manifest",
+  "description": "Schema for plugin-manifest.json files in the plugins/ directory",
+  "type": "object",
+  "required": ["name", "version", "description"],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Unique plugin identifier, lowercase with hyphens",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "description": {
+      "type": "string",
+      "description": "One-sentence description of what this plugin provides"
+    },
+    "author": {
+      "type": "string",
+      "description": "Plugin author name or team"
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL for plugin documentation or repository"
+    },
+    "skills": {
+      "type": "array",
+      "description": "Relative paths to skill directories provided by this plugin",
+      "items": {
+        "type": "string",
+        "description": "Path relative to plugin root, e.g. 'skills/my-skill'"
+      },
+      "default": []
+    },
+    "workflows": {
+      "type": "array",
+      "description": "Relative paths to workflow YAML files provided by this plugin",
+      "items": {
+        "type": "string",
+        "description": "Path relative to plugin root, e.g. 'workflows/my-workflow.yaml'"
+      },
+      "default": []
+    },
+    "overrides": {
+      "type": "array",
+      "description": "Base skill names that this plugin overrides. Must match a skill name in frontmatter.",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "dependencies": {
+      "type": "array",
+      "description": "Other plugin names that must be loaded before this one",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "config_schema": {
+      "type": "object",
+      "description": "JSON Schema for the plugin's config/settings.yaml file (if any)"
+    },
+    "tool_mappings": {
+      "type": "array",
+      "description": "Relative paths to harness tool-mapping reference files",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "min_ai_works_version": {
+      "type": "string",
+      "description": "Minimum AI Works version required",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "keywords": {
+      "type": "array",
+      "description": "Tags for plugin discovery",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  }
+}
