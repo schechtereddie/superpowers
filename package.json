@@ -1,7 +1,7 @@
 {
-  "name": "superpowers",
-  "version": "6.1.1",
-  "description": "Superpowers skills and runtime bootstrap for coding agents",
+  "name": "ai-works",
+  "version": "1.0.0",
+  "description": "AI Works — custom business AI skill & plugin system for internal operations and coding workflows",
   "type": "module",
   "main": ".opencode/plugins/superpowers.js",
   "keywords": [
@@ -10,7 +10,10 @@
     "tdd",
     "debugging",
     "collaboration",
-    "workflow"
+    "workflow",
+    "business",
+    "orchestration",
+    "ai-works"
   ],
   "pi": {
     "extensions": [

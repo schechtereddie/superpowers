@@ -1,0 +1,131 @@
+name: onboarding-workflow
+description: New project onboarding — detect tech stack, load domain-specific skills, set up workspace, and initialize tracking
+version: 1.0.0
+entry: detect-stack
+
+steps:
+  detect-stack:
+    skill: brainstorming
+    description: Explore the project, identify tech stack, detect existing conventions and quality baseline
+    outputs:
+      - web-frontend
+      - web-backend
+      - fullstack
+      - data-pipeline
+      - mobile
+      - cli-tool
+      - library
+      - unknown
+    transitions:
+      web-frontend: capture-frontend-requirements
+      web-backend: capture-backend-requirements
+      fullstack: capture-fullstack-requirements
+      data-pipeline: capture-data-requirements
+      mobile: capture-mobile-requirements
+      cli-tool: capture-requirements
+      library: capture-requirements
+      unknown: capture-requirements
+
+  capture-frontend-requirements:
+    skill: ai-works:requirements-capture
+    description: Capture functional and non-functional requirements, UI/UX constraints, browser targets
+    context_pass:
+      - stack_type
+    outputs:
+      - requirements-captured
+    transitions:
+      requirements-captured: setup-workspace
+
+  capture-backend-requirements:
+    skill: ai-works:requirements-capture
+    description: Capture API contracts, data models, scaling requirements, integration points
+    context_pass:
+      - stack_type
+    outputs:
+      - requirements-captured
+    transitions:
+      requirements-captured: setup-workspace
+
+  capture-fullstack-requirements:
+    skill: ai-works:requirements-capture
+    description: Capture end-to-end requirements covering both frontend and backend concerns
+    context_pass:
+      - stack_type
+    outputs:
+      - requirements-captured
+    transitions:
+      requirements-captured: setup-workspace
+
+  capture-data-requirements:
+    skill: ai-works:requirements-capture
+    description: Capture data sources, transformations, output formats, SLA and freshness requirements
+    context_pass:
+      - stack_type
+    outputs:
+      - requirements-captured
+    transitions:
+      requirements-captured: setup-workspace
+
+  capture-mobile-requirements:
+    skill: ai-works:requirements-capture
+    description: Capture platform targets (iOS/Android), offline behavior, device constraints
+    context_pass:
+      - stack_type
+    outputs:
+      - requirements-captured
+    transitions:
+      requirements-captured: setup-workspace
+
+  capture-requirements:
+    skill: ai-works:requirements-capture
+    description: Capture project requirements appropriate for the detected project type
+    context_pass:
+      - stack_type
+    outputs:
+      - requirements-captured
+    transitions:
+      requirements-captured: setup-workspace
+
+  setup-workspace:
+    skill: using-git-worktrees
+    description: Create isolated git worktree for the initial development work
+    outputs:
+      - workspace-ready
+      - workspace-exists
+    transitions:
+      _default: project-kickoff
+
+  project-kickoff:
+    skill: ai-works:project-kickoff
+    description: Define project scope, create initial task breakdown, set up tracking structure
+    context_pass:
+      - stack_type
+      - requirements
+    outputs:
+      - kickoff-complete
+    transitions:
+      kickoff-complete: schema-design
+
+  schema-design:
+    skill: ai-works:database-schema-design
+    description: Design the data model. Skip if no persistent storage needed (mark outcome as skipped).
+    outputs:
+      - schema-designed
+      - skipped
+    transitions:
+      _default: risk-assessment
+
+  risk-assessment:
+    skill: ai-works:risk-assessment
+    description: Identify project risks, score probability × impact, suggest mitigations
+    outputs:
+      - risks-assessed
+    transitions:
+      risks-assessed: onboarding-complete
+
+  onboarding-complete:
+    skill: ai-works:decision-log
+    description: Record all onboarding decisions, chosen tech stack, key risks, and first-sprint plan
+    outputs:
+      - logged
+    terminal: true

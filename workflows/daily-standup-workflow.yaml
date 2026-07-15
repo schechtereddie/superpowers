@@ -1,0 +1,71 @@
+name: daily-standup-workflow
+description: Structured daily standup — gather updates, assess blockers, and route to the right follow-up skill
+version: 1.0.0
+entry: gather-updates
+
+steps:
+  gather-updates:
+    skill: ai-works:daily-standup
+    description: Collect what was done yesterday, what's planned today, and identify any blockers
+    outputs:
+      - no-blockers
+      - has-technical-blocker
+      - has-process-blocker
+      - has-risk
+    transitions:
+      no-blockers: daily-summary
+      has-technical-blocker: debug-triage
+      has-process-blocker: task-planning
+      has-risk: risk-review
+    timeout_minutes: 20
+
+  debug-triage:
+    skill: systematic-debugging
+    description: Investigate the reported technical blocker using root-cause analysis
+    outputs:
+      - blocker-resolved
+      - blocker-needs-work
+      - blocker-needs-escalation
+    requires_human:
+      - blocker-needs-escalation
+    transitions:
+      blocker-resolved: daily-summary
+      blocker-needs-work: task-planning
+      blocker-needs-escalation: escalation
+
+  task-planning:
+    skill: ai-works:task-prioritization
+    description: Reprioritize today's task list given the blocker or process issue
+    outputs:
+      - tasks-updated
+      - tasks-unchanged
+    transitions:
+      _default: daily-summary
+
+  risk-review:
+    skill: ai-works:risk-assessment
+    description: Evaluate the identified risk — score probability × impact, suggest mitigations
+    outputs:
+      - risk-mitigated
+      - risk-tracked
+      - risk-escalate
+    requires_human:
+      - risk-escalate
+    transitions:
+      risk-mitigated: daily-summary
+      risk-tracked: daily-summary
+      risk-escalate: escalation
+
+  escalation:
+    skill: ai-works:stakeholder-update
+    description: Prepare a concise escalation update for management or the affected stakeholder
+    outputs:
+      - update-sent
+    terminal: true
+
+  daily-summary:
+    skill: ai-works:decision-log
+    description: Record today's decisions, outcomes, and any task changes in the decision log
+    outputs:
+      - logged
+    terminal: true

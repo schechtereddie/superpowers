@@ -1,0 +1,88 @@
+name: code-review-workflow
+description: Code review with adaptive routing — critical issues trigger debugging, minor issues route to fix-and-commit
+version: 1.0.0
+entry: request-review
+
+steps:
+  request-review:
+    skill: requesting-code-review
+    description: Run pre-review checklist and gather the diff to review
+    outputs:
+      - ready-for-review
+      - not-ready
+    transitions:
+      ready-for-review: review-code
+      not-ready: pre-review-fixes
+
+  pre-review-fixes:
+    skill: executing-plans
+    description: Address the issues found in the pre-review checklist before proceeding
+    outputs:
+      - fixed
+      - blocked
+    requires_human:
+      - blocked
+    transitions:
+      fixed: review-code
+      blocked: escalation
+
+  review-code:
+    skill: receiving-code-review
+    description: Evaluate the diff against the plan; identify and categorize issues by severity
+    outputs:
+      - no-issues
+      - minor-issues
+      - critical-issues
+    transitions:
+      no-issues: merge-ready
+      minor-issues: fix-minor
+      critical-issues: debug-critical
+
+  debug-critical:
+    skill: systematic-debugging
+    description: Root-cause and fix each critical issue found during review
+    outputs:
+      - all-fixed
+      - partially-fixed
+      - architectural-problem
+    requires_human:
+      - architectural-problem
+    transitions:
+      all-fixed: review-code
+      partially-fixed: review-code
+      architectural-problem: rethink
+
+  fix-minor:
+    skill: executing-plans
+    description: Apply minor fixes identified during review
+    outputs:
+      - fixed
+      - needs-review
+    transitions:
+      fixed: merge-ready
+      needs-review: review-code
+
+  merge-ready:
+    skill: finishing-a-development-branch
+    description: Tests verified clean — present merge/PR/keep/discard options and execute choice
+    outputs:
+      - merged
+      - pr-created
+      - kept
+      - discarded
+    terminal: true
+
+  rethink:
+    skill: brainstorming
+    description: Architectural problem found — re-brainstorm the approach before implementing again
+    outputs:
+      - new-design-approved
+      - work-abandoned
+    terminal: true
+
+  escalation:
+    skill: ai-works:stakeholder-update
+    description: Blocked — prepare update for affected stakeholders
+    outputs:
+      - update-sent
+    terminal: true

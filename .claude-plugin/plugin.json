@@ -1,13 +1,12 @@
 {
-  "name": "superpowers",
-  "description": "Core skills library for Claude Code: TDD, debugging, collaboration patterns, and proven techniques",
-  "version": "6.1.1",
+  "name": "ai-works",
+  "description": "AI Works — custom business AI skill & plugin system for internal operations and coding workflows",
+  "version": "1.0.0",
   "author": {
-    "name": "Jesse Vincent",
-    "email": "jesse@fsck.com"
+    "name": "AI Works"
   },
-  "homepage": "https://github.com/obra/superpowers",
-  "repository": "https://github.com/obra/superpowers",
+  "homepage": "https://github.com/schechtereddie/superpowers",
+  "repository": "https://github.com/schechtereddie/superpowers",
   "license": "MIT",
   "keywords": [
     "skills",
@@ -15,6 +14,8 @@
     "debugging",
     "collaboration",
     "best-practices",
-    "workflows"
+    "workflows",
+    "business",
+    "orchestration"
   ]
 }
